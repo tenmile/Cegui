@@ -1,5 +1,6 @@
-#ifndef _EventArgs_h_
-#define _EventArgs_h_
+#pragma once
+#include "Base.h"
+
 namespace
 {
 	
@@ -9,7 +10,6 @@ class EventArgs
 	virtual ~EventArgs(void){}
 	
 	uint handled; //处理完事件后递增handled
-}
+};
 
 }
-#endif
