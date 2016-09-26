@@ -1,7 +1,19 @@
 #pragma once
 
+#define CEGUIEXPORT __declspec(dllexport)
+
 #include "Config.h"
 #include "Version.h"
+#include <string>
+#include <algorithm>
+
+#define ceguimin std::min
+#define ceguimax std::max
+
+#define CEGUI_TRY try
+#define CEGUI_CATCH(e) catch(e)
+#define CEGUI_THROW(e) throw(e)
+#define CEGUI_RETHOW throw
 
 namespace
 {
