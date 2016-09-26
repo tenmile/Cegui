@@ -1,7 +1,7 @@
 #pragma once
 #include "Base.h"
 
-namespace
+namespace CEGUI
 {
 	
 class EventArgs

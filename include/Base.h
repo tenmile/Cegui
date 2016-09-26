@@ -6,6 +6,8 @@
 #include "Version.h"
 #include <string>
 #include <algorithm>
+//Bring in forward references to all GUI base system classes
+#include "ForwardRefs.h"
 
 #define ceguimin std::min
 #define ceguimax std::max
@@ -15,7 +17,10 @@
 #define CEGUI_THROW(e) throw(e)
 #define CEGUI_RETHOW throw
 
-namespace
+#define CEGUI_ALIGN_ELEMENTS_TO_PIXELS 1
+#define PixelAligned(x) ((float)(int)((x)+((x)>0.0f?0.5f:-0.5f)))
+
+namespace CEGUI
 {
 
 	typedef unsigned long ulong;
