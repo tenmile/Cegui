@@ -33,7 +33,7 @@ public:
 		return d_name;
 	}
 
-	virtual String get(const Properry *receiver) const = 0;
+	virtual String get(const Property *receiver) const = 0;
 	virtual void set(PropertyReceiver *receiver, const String &value) = 0;
 
 	virtual bool isDefault(const PropertyReceiver *receiver) const;
