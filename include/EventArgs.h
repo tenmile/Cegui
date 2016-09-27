@@ -4,7 +4,7 @@
 namespace CEGUI
 {
 	
-class EventArgs
+class CEGUIEXPORT EventArgs
 {
 	EventArgs(void): handled(0){}
 	virtual ~EventArgs(void){}

@@ -8,7 +8,7 @@ class SlotFunctorBase
 {
 public:
 	virtual ~SlotFunctorBase(){};
-	virtual bool operator()(const EventArgs& args)=0;
+	virtual bool operator()(const EventArgs &args)=0;
 };
 
 }
