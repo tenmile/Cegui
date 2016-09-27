@@ -4,6 +4,7 @@
 
 #include "Config.h"
 #include "Version.h"
+#include <cassert>
 #include <string>
 #include <algorithm>
 //Bring in forward references to all GUI base system classes
