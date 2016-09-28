@@ -77,6 +77,16 @@ bool PropertySet::isPropertyDefault(const String &name) const
 	}
 	return pos->second->isDefault(this);
 }
+String PropertySet::getPropertyDefault(const String &name) const
+{
+	PropertyRegistry::const_iterator pos = d_properties.find(name);
+	if (pos == d_properties.end())
+	{
+		CEGUI_THROW(UnknownObjectException("There is no Property named'" +name+ "' available in the set."));
+	}
+
+	return pos->second->getDefault(this);
+}
 
 
 }
