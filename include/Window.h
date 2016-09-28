@@ -453,8 +453,39 @@ protected:
 	bool d_riseOnClick;
 	bool d_zOrderingEnabled;
 	bool d_wantsMultiClicks;
+	bool d_mousePassThroughEnabled;
+	bool d_autoRepeat;
+	float d_repeatDelay;
+	MouseButton d_repeatButton;
+	bool d_repeating;
+	float d_repeatElaspsed;
+	bool d_dragDropTarget;
+	String d_tooltipText;
+	Tooltip *d_customTip;
+	bool d_weOwnTip;
+	bool d_inheritsTipText;
+	bool d_allowWriteXML;
+	BannedXMLPropertySet d_bannedXMLProperties;
+	URect d_area;
+	Size d_pixelSize;
+	UVector2 d_minSize;
+	UVector2 d_maxSize;
+	HorizontalAlignment d_horzAlign;
+	VerticalAlignment d_vertAlign;
+	Vector3 d_rotation;
 
+	mutable Rect d_outerUnclippedRect;
+	mutable Rect d_innerUnclippedRect;
+	mutable Rect d_outerRectClipper;
+	mutable Rect d_innerRectClipper;
+	mutable Rect d_hitTestRectValid;
 
+	WindowUpdateMode d_updateMode;
+	bool d_propagateMouseInputs;
+
+private:
+	Window(const Window&): PropertySet(), EventSet() {}
+	Window& operator=(const Window&) { return *this; }
 
 };
 
