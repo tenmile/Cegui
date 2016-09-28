@@ -233,6 +233,7 @@ public:
 		const utf32 *d_ptr;
 	};
 	typedef std::reverse_iterator<iterator> reverse_iterator;
+	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 public:
 	//比默认的快，但std::map中不再按字母排序
 	struct FastLessCompare
@@ -349,6 +350,35 @@ public:
 		{
 			grow(num);
 		}
+	}
+
+	int compare(const String &str) const
+	{
+		return compare(0, d_cplength, str);
+	}
+
+	int compare(size_type idx, size_type len, const String &str, size_type str_idx=0, size_type str_len=npos) const
+	{
+		if ((d_cplength<idx) || (str.d_cplength<str_idx))
+		{
+			CEGUI_THROW(std::out_of_range("Index is out of range for CEGUI::String"));
+		}
+		if ((len == npos) ||(idx+len>d_cplength))
+		{
+			len = d_cplength-idx;
+		}
+		if ((str_len==npos) || (str_idx+str_len>str.d_cplength))
+		{
+			str_len = str.d_cplength - str_idx;
+		}
+
+		int val = (len==0) ? 0 : utf32_comp_utf32(&ptr()[idx], &str.ptr()[str_idx], (len<str_len)?len:str_len);
+		return (val!=0) ? ((val<0)?-1:1) : (len<str_len)?-1:(len==str_len)?0:1;
+	}
+
+	int compare(const std::string &std_str) const
+	{
+		return compare(0, d_cplength, std_str);
 	}
 
 };
