@@ -108,4 +108,34 @@ void GUILayout_xmlHandler::elementGUILayoutStart(const XMLAttributes &attributes
 	}
 }
 
+void GUILayout_xmlHandler::elementWindowStart(const XMLAttributes &attributes)
+{
+	String windowType(attributes.getValueAsString(WindowTypeAttribute));
+	String windowName(attributes.getValueAsString(WindowNameAttribute));
+	CEGUI_TRY
+	{
+		Window *wnd = WindowManager::getSingleton().createWindow(windowType, d_namingPrefix+windowName);
+
+		if (!d_stack.empty())
+		{
+			d_stack.back().first->addChildWindow(wnd);
+		}else
+		{
+			d_root = wnd;
+		}
+		d_stack.push_back(WindowStackEntry(wnd, true));
+		wnd->beginInitialisation();
+	}
+	CEGUI_CATCH(AlreadyExistsException&)
+	{
+		cleanupLoadedWindows();
+		CEGUI_THROW(InvalidRequestException("GUILayout_xmlHandler::startElement - layout loading has been aborted since Window named '" +windowName+ "' already exists."));
+	}
+	CEGUI_CATCH(UnknownObjectException&)
+	{
+		cleanupLoadedWindows();
+		CEGUI_THROW(InvalidRequestException("GUILayout_xmlHandler::startElement - layout loading has been aborted since no WindowFactory is availabe for '" +windowType+ "' objects."));
+	}
+}
+
 }
