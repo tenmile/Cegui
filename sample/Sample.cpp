@@ -8,7 +8,6 @@
 
 
 Sample::Sample():
-		d_rendererSelector(0),
 		d_sampleApp(0){}
 
 Sample::~Sample()
@@ -17,10 +16,6 @@ Sample::~Sample()
 	{
 		d_sampleApp->cleanup();
 		delete d_sampleApp;
-	}
-	if(d_rendererSelector)
-	{
-		delete d_rendererSelector;
 	}
 }
 
@@ -54,6 +49,27 @@ int Sample::run()
 
 bool Sample::initialise()
 {
-	d_rendererSelector = new Win32RendererSelector;
-	d_rendererSelector->setRendererAvailability(Direct3D9GuiRendererType);
+	d_sampleApp = new D3D9BaseApplication();
+	if(d_sampleApp->execute(this))
+	{
+		return true;
+	}
+	delete d_sampleApp;
+	d_sampleApp = 0;
+	return false;
+}
+
+void Sample::cleanup()
+{
+	if(d_sampleApp)
+	{
+		d_sampleApp->cleanup();
+		delete d_sampleApp;
+		d_sampleApp = 0;
+	}
+}
+
+void Sample::outputExceptionMessage(const char *message) const
+{
+	MessageBoxA(0, message, "CEGUI-Exception", MB_OK | MB_ICONERROR);
 }

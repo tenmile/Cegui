@@ -18,7 +18,5 @@ protected:
 	virtual void cleanup();
 
 	void outputExceptionMessage(const char *message) const;
-
-	RendererSelector *d_rendererSelector;
 	BaseApplication *d_sampleApp;
 };
