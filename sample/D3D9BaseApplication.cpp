@@ -99,3 +99,126 @@ bool D3D9BaseApplication::overlayHandler(const CEGUI::EventArgs &args)
 	d_logo_geometry->draw();
 	return true;
 }
+
+bool D3D9BaseApplication::execute(Sample *sampleApp)
+{
+	sampleApp->initialiseSample();
+	bool idle;
+	HRESULT coop;
+	while(Win32AppHelper::doWin32Events(idle))
+	{
+		if(idle)
+		{
+			CEGUI::System &guiSystem = CEGUI::System::getSingleton();
+
+			DWORD thisTime = GetTickCount();
+			float elapsed = static_cast<float>(thisTime-d_lastFrameTime);
+			d_lastFrameTime = thisTime;
+			guiSystem.injectTimePulse(elapsed/1000.0f);
+			coop = pimpl->d_3DDevice->TestCooperativeLevel();
+			if(coop == D3DERR_DEVICELOST)
+			{
+				Sleep(500);
+				continue;
+			}else if(coop == D3DERR_DEVICENOTRESET)
+			{
+				if(!resetDirect3D())
+				{
+					continue;
+				}
+			}
+			doFPSUpdate();
+			static float rot = 0.0f;
+			d_logo_geometry->setRotation(CEGUI::Vector3(rot, 0, 0));
+			rot += 180.0f*(elapsed/1000.0f);
+			if(rot>360.0f)
+			{
+				rot -= 360.0f;
+			}
+			Win32AppHelper::doDirectInputEvents(pimpl->d_directInput);
+			if(FAILED(pimpl->d_3DDevice->BeginScene()))
+			{
+				continue;
+			}
+			pimpl->d_3DDevice->Clear(0, 0, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0.0,0), 1.0f, 0);
+			guiSystem.rendererGUI();
+			pimpl->d_3DDevice->EndScene();
+			pimpl->d_3DDevice->Present(0, 0, 0, 0);
+		}
+		if(isQuitting())
+		{
+			PostQuitMessage(0);
+		}
+	}
+	return true;
+}
+
+void D3D9BaseApplication::cleanup()
+{
+
+}
+
+bool D3D9BaseApplication::initialiseDirect3D(unsigned int width, unsigned int height, unsigned int adapter, bool windowed)
+{
+	pimpl->d_D3D = Direct3DCreate9(D3D_SDK_VERSION);
+
+	if(pimpl->d_D3D)
+	{
+		D3DDISPLAYMODE d3ddm;
+		pimpl->d_D3D->GetAdapterDisplayMode(adapter, &d3ddm);
+		D3DFORMAT format = d3ddm.Format;
+		ShowWindow(pimpl->d_window, SW_NORMAL);
+		UpdateWindow(pimpl->d_window);
+
+		ZeroMemory(&pimpl->d_ppars, sizeof(pimpl->d_ppars));
+		pimpl->d_ppars.BackBufferFormat = format;
+		pimpl->d_ppars.hDeviceWindow = pimpl->d_window;
+		pimpl->d_ppars.SwapEffect = D3DSWAPEFFECT_DISCARD;
+		pimpl->d_ppars.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+		pimpl->d_ppars.Windowed = windowed;
+
+		if(!windowed)
+		{
+			pimpl->d_ppars.BackBufferWidth = width;
+			pimpl->d_ppars.BackBufferHeight = height;
+			pimpl->d_ppars.BackBufferCount = 1;
+			pimpl->d_ppars.MultiSampleType = D3DMULTISAMPLE_NONE;
+			pimpl->d_ppars.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
+		}
+		if(SUCCEEDED(pimpl->d_D3D->CreateDevice(adapter, D3DDEVTYPE_HAL, pimpl->d_window, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &pimpl->d_ppars, &pimpl->d_3DDevice)))
+		{
+			return true;
+		}else
+		{
+			MessageBox(0, Win32AppHelper::CREATE_D3D_ERROR, Win32AppHelper::APPLICATION, MB_ICONERROR|MB_OK);
+		}
+
+		return false;
+	}
+}
+
+bool D3D9BaseApplication::resetDirect3D()
+{
+	pimpl->d_renderer->preD3DReset();
+	if(SUCCEEDED(pimpl->d_3DDevice->Reset(&pimpl->d_ppars)))
+	{
+		pimpl->d_renderer->postD3DReset();
+		return true;
+	}
+
+	return false;
+}
+
+BOID D3D9BaseApplication::doFPSUpdate()
+{
+	++d_fps_frames;
+
+	DWORD thisTime = GetTickCount();
+	if(thisTime-d_fps_lastTime>=1000)
+	{
+		sprintf(d_fps_textbuff, "FPS: %d", d_fps_frames);
+		d_fps_value = d_fps_frames;
+		d_fps_frames = 0;
+		d_fps_lastTime = thisTime;
+	}
+}
