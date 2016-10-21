@@ -138,5 +138,111 @@ void Win32AppHelper::mouseLeaves()
 
 bool Win32AppHelper::initialiseDirectInput(HWND window, Wind32AppHelper::DirectInputState &dis)
 {
+	if(SUCCEEDED(DirectInput8Create(GetModuleHandle(0), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&dis.directInput, 0)))
+	{
+		if(SUCCEEDED(dis.directInput->CreateDevice(GUID_SysKeyboard, &dis.keyboardDevice, 0)))
+		{
+			if(SUCCEEDED(dis.keyboardDevice->SetDataFormat(&c_dfDIKeyboard)))
+			{
+				if(SUCCEEDED(dis.keyboardDevice->SetCooperativeLevel(window, DISCL_FOREGROUND|DISCL_NONEXCLUSIVE)))
+				{
+					DIPROPDWORD inputProp;
+					inputProp.diph.dwSize		= sizeof(DIPROPDWORD);
+					inputProp.diph.dwHeaderSize	= sizeof(DIPROPDWORD);
+					inputProp.diph.dwObj		= 0;
+					inputProp.diph.dwHow		= DIPH_DEVICE;
+					inputProp.dwData			= 16;
 
+					if(SUCCEEDED(dis.keyboardDevice->SetProperty(DIPROP_BUFFERSIZE, &inputProp.diph)))
+					{
+						dis.keyboardDevice->Acquire();
+						return true;
+					}else
+					{
+						MessageBox(0, _TEXT("Failed to set buffer size for keyboard device."), APPLICATION_NAME, MB_ICONERROR|MB_OK);
+					}
+				}else
+				{
+					MessageBox(0, _TEXT("Failed to get co-operative level for keyboard device."), APPLICATION_NAME, MB_ICONERROR|MB_OK);
+				}
+			}else
+			{
+				MessageBox(0, _TEXT("Failed to set data format for keyboard device."), APPLICATION_NAME, MB_ICONERROR|MB_OK);
+			}
+			dis.directInput->Release();
+			dis.directInput = 0;
+		}
+	}else
+	{
+		MessageBox(0, _TEXT("Failed to create main DirectInput object."), APPLICATION_NAME, MB_ICONERROR|MB_OK);
+	}
+	return false;
+}
+
+void Win32AppHelper::cleanupDirectInput(Win32AppHelper::DirectInputState &dis)
+{
+	if(dis.keyboardDevice)
+	{
+		dis.keyboardDevice->Unacquire();
+		dis.keyboardDevice->Release();
+		dis.keyboardDevice = 0;
+	}
+	if(dis.directInput)
+	{
+		dis.directInput->Release();
+		dis.directInput = 0;
+	}
+}
+
+void Win32AppHelper::doDirectInputEvents(const Win32AppHelper::DirectInputState &dis)
+{
+	DIDEVICEOBJECTDATA devDat;
+	DWORD itemCount = 1;
+	HRESULT res = dis.keyboardDevice->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &devDat, &itemCount, 0);
+
+	if(SUCCEEDED(res))
+	{
+		if(itemCount>0)
+		{
+			if(LOBYTE(devDat.dwData) & 0x80)
+			{
+				if(devDat.dwOfs == CEGUI::Key::Escape)
+				{
+					PostQuitMessage(0);
+				}else
+				{
+					CEGUI::System::getSingleton().injectKeyDown(devDat.dwOfs)£»
+				}
+			}else
+			{
+				CEGUI::System::getSingleton().injectKeyUp(devDat.dwOfs);
+			}
+		}
+	}else
+	{
+		if(res==DIERR_NOTACQUIRED || res==DIERR_INPUTLOST)
+		{
+			dis.keyboardDevice->Acquire();
+		}
+	}
+}
+
+bool Win32AppHelper::doWin32Events(bool &idle)
+{
+	MSG msg;
+	if(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+	{
+		if(msg.message==WM_QUIT)
+		{
+			return false;
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+		idle = false;
+	}else
+	{
+		idle = true;
+	}
+
+	return true;
 }
